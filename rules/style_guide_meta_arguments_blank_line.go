@@ -40,27 +40,36 @@ func (r *StyleGuideMetaArgumentsBlankLineRule) Link() string {
 	return project.ReferenceLink(r.Name())
 }
 
-// leadingMessage returns the message for leading meta argument violations.
-func (r *StyleGuideMetaArgumentsBlankLineRule) leadingMessage() string {
-	return "Meta argument should be followed by a blank line"
+// Message returns the appropriate error message for the given violation type.
+func (r *StyleGuideMetaArgumentsBlankLineRule) Message(msgType string, args ...any) string {
+	switch msgType {
+	case "leading":
+		return "Meta argument should be followed by a blank line"
+	case "trailing":
+		return "Meta argument should be preceded by a blank line"
+	case "lastItem":
+		return "Leading meta argument should not be the last item in the block"
+	default:
+		return ""
+	}
 }
 
-// trailingMessage returns the message for trailing meta argument violations.
-func (r *StyleGuideMetaArgumentsBlankLineRule) trailingMessage() string {
-	return "Meta argument should be preceded by a blank line"
+// metaArgConfig holds configuration for a meta-argument
+type metaArgConfig struct {
+	shouldNotBeLast bool // if true, this meta arg should not be the last item in a block
 }
 
 // leadingMetaArgs are meta arguments that must be followed by a blank line
-var leadingMetaArgs = map[string]struct{}{
-	"count":     {},
-	"for_each":  {},
-	"source":    {},
-	"provider":  {}, // resource blocks: specify which provider to use
-	"providers": {}, // module blocks: pass provider configurations to child modules
+var leadingMetaArgs = map[string]metaArgConfig{
+	"count":     {shouldNotBeLast: true},
+	"for_each":  {shouldNotBeLast: true},
+	"source":    {shouldNotBeLast: false}, // modules can validly have only a source attribute
+	"provider":  {shouldNotBeLast: false}, // modules can validly have source + provider only
+	"providers": {shouldNotBeLast: false}, // modules can validly have source + providers only
 }
 
 // trailingMetaArgs are meta arguments that must be preceded by a blank line
-var trailingMetaArgs = map[string]struct{}{
+var trailingMetaArgs = map[string]metaArgConfig{
 	"lifecycle":   {},
 	"connection":  {},
 	"provisioner": {},
@@ -108,15 +117,24 @@ func (r *StyleGuideMetaArgumentsBlankLineRule) checkBlock(runner tflint.Runner, 
 
 	for i, item := range items {
 		// Check leading meta args: must be followed by a blank line
-		if _, ok := leadingMetaArgs[item.name]; ok {
-			next := items[i+1] // safe: leading meta arg is never the last item if len >= 2
-			if i+1 < len(items) && !hasBlankLineBetween(item.endLine, next.startLine) {
-				if _, nextIsAlsoLeading := leadingMetaArgs[next.name]; !nextIsAlsoLeading {
-					rng := attrOrBlockRange(block, item)
-					msg := r.leadingMessage()
-					if err := runner.EmitIssue(r, msg, rng); err != nil {
-						return err
+		if config, ok := leadingMetaArgs[item.name]; ok {
+			if i+1 < len(items) {
+				next := items[i+1]
+				if !hasBlankLineBetween(item.endLine, next.startLine) {
+					if _, nextIsAlsoLeading := leadingMetaArgs[next.name]; !nextIsAlsoLeading {
+						rng := attrOrBlockRange(block, item)
+						msg := r.Message("leading")
+						if err := runner.EmitIssue(r, msg, rng); err != nil {
+							return err
+						}
 					}
+				}
+			} else if config.shouldNotBeLast {
+				// This leading meta arg should not be the last item
+				rng := attrOrBlockRange(block, item)
+				msg := r.Message("lastItem")
+				if err := runner.EmitIssue(r, msg, rng); err != nil {
+					return err
 				}
 			}
 		}
@@ -127,7 +145,7 @@ func (r *StyleGuideMetaArgumentsBlankLineRule) checkBlock(runner tflint.Runner, 
 				prev := items[i-1]
 				if !hasBlankLineBetween(prev.endLine, item.startLine) {
 					rng := attrOrBlockRange(block, item)
-					msg := r.trailingMessage()
+					msg := r.Message("trailing")
 					if err := runner.EmitIssue(r, msg, rng); err != nil {
 						return err
 					}
