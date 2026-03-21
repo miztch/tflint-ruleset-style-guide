@@ -114,6 +114,73 @@ func TestStyleGuideMetaArgumentsBlankLineRule(t *testing.T) {
 			Expected: helper.Issues{},
 		},
 		{
+			Name: "count is the last item",
+			Content: `resource "aws_instance" "example" {
+  ami   = "ami-123"
+
+  count = 1
+}`,
+			Expected: helper.Issues{
+				{
+					Rule:    NewStyleGuideMetaArgumentsBlankLineRule(),
+					Message: "Leading meta argument should not be the last item in the block",
+					Range: hcl.Range{
+						Filename: "main.tf",
+						Start:    hcl.Pos{Line: 4, Column: 3},
+						End:      hcl.Pos{Line: 4, Column: 12},
+					},
+				},
+			},
+		},
+		{
+			Name: "for_each is the last item",
+			Content: `resource "aws_instance" "example" {
+  ami = "ami-123"
+
+  for_each = toset(["a", "b"])
+}`,
+			Expected: helper.Issues{
+				{
+					Rule:    NewStyleGuideMetaArgumentsBlankLineRule(),
+					Message: "Leading meta argument should not be the last item in the block",
+					Range: hcl.Range{
+						Filename: "main.tf",
+						Start:    hcl.Pos{Line: 4, Column: 3},
+						End:      hcl.Pos{Line: 4, Column: 22},
+					},
+				},
+			},
+		},
+		{
+			Name: "no issue when provider is the last item",
+			Content: `resource "aws_instance" "example" {
+  ami = "ami-123"
+
+  provider = aws.west
+}`,
+			Expected: helper.Issues{},
+		},
+		{
+			Name: "no issue when providers is the last item",
+			Content: `module "example" {
+  source = "./modules/example"
+
+  providers = {
+    aws = aws.west
+  }
+}`,
+			Expected: helper.Issues{},
+		},
+		{
+			Name: "no issue when source is the last item",
+			Content: `module "example" {
+  version = "1.0.0"
+
+  source = "./modules/example"
+}`,
+			Expected: helper.Issues{},
+		},
+		{
 			Name: "no issue when two leading meta arguments are consecutive",
 			Content: `resource "aws_instance" "example" {
   for_each = toset(["a"])
