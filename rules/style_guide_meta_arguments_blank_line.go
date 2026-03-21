@@ -1,6 +1,7 @@
 package rules
 
 import (
+	"slices"
 	"sort"
 
 	"github.com/hashicorp/hcl/v2"
@@ -56,24 +57,48 @@ func (r *StyleGuideMetaArgumentsBlankLineRule) Message(msgType string, args ...a
 
 // metaArgConfig holds configuration for a meta-argument
 type metaArgConfig struct {
-	shouldNotBeLast bool // if true, this meta arg should not be the last item in a block
+	shouldNotBeLast bool
+	validBlocks     []string
 }
 
 // leadingMetaArgs are meta arguments that must be followed by a blank line
 var leadingMetaArgs = map[string]metaArgConfig{
-	"count":     {shouldNotBeLast: true},
-	"for_each":  {shouldNotBeLast: true},
-	"source":    {shouldNotBeLast: false}, // modules can validly have only a source attribute
-	"provider":  {shouldNotBeLast: false}, // modules can validly have source + provider only
-	"providers": {shouldNotBeLast: false}, // modules can validly have source + providers only
+	"count": {
+		shouldNotBeLast: true,
+		validBlocks:     []string{BlockTypeResource, BlockTypeData, BlockTypeModule},
+	},
+	"for_each": {
+		shouldNotBeLast: true,
+		validBlocks:     []string{BlockTypeResource, BlockTypeData, BlockTypeModule},
+	},
+	"source": {
+		shouldNotBeLast: false,
+		validBlocks:     []string{BlockTypeModule},
+	},
+	"provider": {
+		shouldNotBeLast: false,
+		validBlocks:     []string{BlockTypeResource, BlockTypeData},
+	},
+	"providers": {
+		shouldNotBeLast: false,
+		validBlocks:     []string{BlockTypeModule},
+	},
 }
 
 // trailingMetaArgs are meta arguments that must be preceded by a blank line
 var trailingMetaArgs = map[string]metaArgConfig{
-	"lifecycle":   {},
-	"connection":  {},
-	"provisioner": {},
-	"depends_on":  {},
+	"lifecycle": {
+		validBlocks: []string{BlockTypeResource, BlockTypeData},
+	},
+	"connection": {
+		validBlocks: []string{BlockTypeResource},
+	},
+	"provisioner": {
+		validBlocks: []string{BlockTypeResource},
+	},
+	"depends_on": {
+		validBlocks: []string{BlockTypeResource, BlockTypeData, BlockTypeModule},
+	},
 }
 
 // bodyItem represents a single attribute or block within an HCL body,
@@ -118,6 +143,11 @@ func (r *StyleGuideMetaArgumentsBlankLineRule) checkBlock(runner tflint.Runner, 
 	for i, item := range items {
 		// Check leading meta args: must be followed by a blank line
 		if config, ok := leadingMetaArgs[item.name]; ok {
+			// Skip if this meta-arg is not valid for this block type
+			if !isValidForBlock(config, block.Type) {
+				continue
+			}
+
 			if i+1 < len(items) {
 				next := items[i+1]
 				if !hasBlankLineBetween(item.endLine, next.startLine) {
@@ -140,7 +170,12 @@ func (r *StyleGuideMetaArgumentsBlankLineRule) checkBlock(runner tflint.Runner, 
 		}
 
 		// Check trailing meta args: must be preceded by a blank line
-		if _, ok := trailingMetaArgs[item.name]; ok {
+		if config, ok := trailingMetaArgs[item.name]; ok {
+			// Skip if this meta-arg is not valid for this block type
+			if !isValidForBlock(config, block.Type) {
+				continue
+			}
+
 			if i > 0 {
 				prev := items[i-1]
 				if !hasBlankLineBetween(prev.endLine, item.startLine) {
@@ -191,6 +226,15 @@ func collectItems(body *hclsyntax.Body) []bodyItem {
 // the end of one item and the start of the next.
 func hasBlankLineBetween(endLine, nextStartLine int) bool {
 	return nextStartLine > endLine+1
+}
+
+// isValidForBlock checks if a meta-argument is valid for the given block type.
+// Returns true if there are no restrictions or if the block type is in the allowed list.
+func isValidForBlock(config metaArgConfig, blockType string) bool {
+	if config.validBlocks == nil {
+		return true
+	}
+	return slices.Contains(config.validBlocks, blockType)
 }
 
 // attrOrBlockRange returns the HCL range for a bodyItem within a given block.

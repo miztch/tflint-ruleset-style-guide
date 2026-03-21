@@ -86,6 +86,24 @@ func TestStyleGuideMetaArgumentsBlankLineRule(t *testing.T) {
 			},
 		},
 		{
+			Name: "missing blank line after provider in data source",
+			Content: `data "aws_ami" "ubuntu" {
+  provider    = aws.west
+  most_recent = true
+}`,
+			Expected: helper.Issues{
+				{
+					Rule:    NewStyleGuideMetaArgumentsBlankLineRule(),
+					Message: "Meta argument should be followed by a blank line",
+					Range: hcl.Range{
+						Filename: "main.tf",
+						Start:    hcl.Pos{Line: 2, Column: 3},
+						End:      hcl.Pos{Line: 2, Column: 11},
+					},
+				},
+			},
+		},
+		{
 			Name: "missing blank line after providers",
 			Content: `module "example" {
   source    = "./modules/example"
@@ -161,6 +179,15 @@ func TestStyleGuideMetaArgumentsBlankLineRule(t *testing.T) {
 			Expected: helper.Issues{},
 		},
 		{
+			Name: "no issue when provider is the last item in data source",
+			Content: `data "aws_ami" "ubuntu" {
+  most_recent = true
+
+  provider = aws.west
+}`,
+			Expected: helper.Issues{},
+		},
+		{
 			Name: "no issue when providers is the last item",
 			Content: `module "example" {
   source = "./modules/example"
@@ -177,6 +204,34 @@ func TestStyleGuideMetaArgumentsBlankLineRule(t *testing.T) {
   version = "1.0.0"
 
   source = "./modules/example"
+}`,
+			Expected: helper.Issues{},
+		},
+		{
+			Name: "no issue when source is a regular attribute in resource (not a meta-argument)",
+			Content: `resource "aws_s3_object" "example" {
+  bucket = "my-bucket"
+  key    = "file.txt"
+  source = "path/to/file.txt"
+}`,
+			Expected: helper.Issues{},
+		},
+		{
+			Name: "no issue when provider is a regular attribute in action block",
+			Content: `resource "aws_codepipeline" "example" {
+  name     = "example"
+  role_arn = "arn:aws:iam::123456789012:role/example"
+
+  stage {
+    name = "Source"
+
+    action {
+      name     = "Source"
+      category = "Source"
+      owner    = "AWS"
+      provider = "CodeCommit"
+    }
+  }
 }`,
 			Expected: helper.Issues{},
 		},
