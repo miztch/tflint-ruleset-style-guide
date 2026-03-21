@@ -56,7 +56,7 @@ func (r *StyleGuideTypeVariablesExceptAnyRule) Check(runner tflint.Runner) error
 
 	body, err := runner.GetModuleContent(&hclext.BodySchema{
 		Blocks: []hclext.BlockSchema{{
-			Type:       "variable",
+			Type:       BlockTypeVariable,
 			LabelNames: []string{"name"},
 			Body: &hclext.BodySchema{
 				Attributes: []hclext.AttributeSchema{{Name: "type"}},

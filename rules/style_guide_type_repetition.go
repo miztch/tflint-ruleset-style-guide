@@ -45,9 +45,9 @@ func (r *StyleGuideTypeRepetitionRule) Link() string {
 // Message returns the rule message based on its type
 func (r *StyleGuideTypeRepetitionRule) Message(blockType string) string {
 	switch blockType {
-	case "resource":
+	case BlockTypeResource:
 		return "Resource name should not repeat its resource type"
-	case "data":
+	case BlockTypeData:
 		return "Data source name should not repeat its data source type"
 	default:
 		panic(fmt.Sprintf("terraform_type_repetition: unexpected block type %q", blockType))
@@ -69,11 +69,11 @@ func (r *StyleGuideTypeRepetitionRule) Check(runner tflint.Runner) error {
 	body, err := runner.GetModuleContent(&hclext.BodySchema{
 		Blocks: []hclext.BlockSchema{
 			{
-				Type:       "resource",
+				Type:       BlockTypeResource,
 				LabelNames: []string{"type", "name"},
 			},
 			{
-				Type:       "data",
+				Type:       BlockTypeData,
 				LabelNames: []string{"type", "name"},
 			},
 		},
