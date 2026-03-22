@@ -5,7 +5,6 @@ go 1.26.1
 require (
 	github.com/hashicorp/hcl/v2 v2.24.0
 	github.com/terraform-linters/tflint-plugin-sdk v0.23.1
-	github.com/zclconf/go-cty v1.17.0
 )
 
 require (
@@ -24,6 +23,7 @@ require (
 	github.com/oklog/run v1.1.0 // indirect
 	github.com/vmihailenco/msgpack/v5 v5.3.5 // indirect
 	github.com/vmihailenco/tagparser/v2 v2.0.0 // indirect
+	github.com/zclconf/go-cty v1.18.0 // indirect
 	golang.org/x/mod v0.28.0 // indirect
 	golang.org/x/net v0.44.0 // indirect
 	golang.org/x/sync v0.17.0 // indirect
