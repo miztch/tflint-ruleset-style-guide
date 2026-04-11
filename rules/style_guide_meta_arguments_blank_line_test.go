@@ -402,3 +402,111 @@ func TestStyleGuideMetaArgumentsBlankLineRule(t *testing.T) {
 		})
 	}
 }
+
+func TestStyleGuideMetaArgumentsBlankLineRuleFix(t *testing.T) {
+	cases := []struct {
+		Name    string
+		Content string
+		Fixed   map[string]string
+	}{
+		{
+			Name: "fix missing blank line after count",
+			Content: `resource "aws_instance" "example" {
+  count = 1
+  ami   = "ami-123"
+}`,
+			Fixed: map[string]string{
+				"main.tf": `resource "aws_instance" "example" {
+  count = 1
+
+  ami = "ami-123"
+}`,
+			},
+		},
+		{
+			Name: "fix missing blank line after for_each",
+			Content: `resource "aws_instance" "example" {
+  for_each = toset(["a", "b"])
+  ami      = "ami-123"
+}`,
+			Fixed: map[string]string{
+				"main.tf": `resource "aws_instance" "example" {
+  for_each = toset(["a", "b"])
+
+  ami = "ami-123"
+}`,
+			},
+		},
+		{
+			Name: "fix missing blank line after source",
+			Content: `module "example" {
+  source  = "./modules/example"
+  version = "1.0.0"
+}`,
+			Fixed: map[string]string{
+				"main.tf": `module "example" {
+  source = "./modules/example"
+
+  version = "1.0.0"
+}`,
+			},
+		},
+		{
+			Name: "fix missing blank line after providers (multi-line value)",
+			Content: `module "example" {
+  source    = "./modules/example"
+  providers = {
+    aws = aws.west
+  }
+  version = "1.0.0"
+}`,
+			Fixed: map[string]string{
+				"main.tf": `module "example" {
+  source = "./modules/example"
+  providers = {
+    aws = aws.west
+  }
+
+  version = "1.0.0"
+}`,
+			},
+		},
+		{
+			Name: "fix missing blank line before depends_on",
+			Content: `resource "aws_instance" "example" {
+  ami        = "ami-123"
+  depends_on = [aws_vpc.example]
+}`,
+			Fixed: map[string]string{
+				"main.tf": `resource "aws_instance" "example" {
+  ami = "ami-123"
+
+  depends_on = [aws_vpc.example]
+}`,
+			},
+		},
+		{
+			Name: "lastItem is not fixed",
+			Content: `resource "aws_instance" "example" {
+  ami = "ami-123"
+
+  count = 1
+}`,
+			Fixed: map[string]string{},
+		},
+	}
+
+	rule := NewStyleGuideMetaArgumentsBlankLineRule()
+
+	for _, tc := range cases {
+		t.Run(tc.Name, func(t *testing.T) {
+			runner := helper.TestRunner(t, map[string]string{"main.tf": tc.Content})
+
+			if err := rule.Check(runner); err != nil {
+				t.Fatalf("Unexpected error occurred: %s", err)
+			}
+
+			helper.AssertChanges(t, tc.Fixed, runner.Changes())
+		})
+	}
+}
