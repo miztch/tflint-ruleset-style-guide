@@ -3,6 +3,7 @@ module github.com/miztch/tflint-ruleset-style-guide
 go 1.26.1
 
 require (
+	github.com/MakeNowJust/heredoc/v2 v2.0.1
 	github.com/hashicorp/hcl/v2 v2.24.0
 	github.com/terraform-linters/tflint-plugin-sdk v0.24.0
 )

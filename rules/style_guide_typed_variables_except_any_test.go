@@ -3,6 +3,7 @@ package rules
 import (
 	"testing"
 
+	"github.com/MakeNowJust/heredoc/v2"
 	"github.com/hashicorp/hcl/v2"
 	"github.com/terraform-linters/tflint-plugin-sdk/helper"
 )
@@ -15,9 +16,11 @@ func TestStyleGuideTypeVariablesExceptAnyRule(t *testing.T) {
 	}{
 		{
 			Name: "variable with type any",
-			Content: `variable "test" {
-  type = any
-}`,
+			Content: heredoc.Doc(`
+				variable "test" {
+				  type = any
+				}
+			`),
 			Expected: helper.Issues{
 				{
 					Rule:    NewStyleGuideTypeVariablesExceptAnyRule(),
@@ -32,9 +35,11 @@ func TestStyleGuideTypeVariablesExceptAnyRule(t *testing.T) {
 		},
 		{
 			Name: "variable with type list of any",
-			Content: `variable "test" {
-  type = list(any)
-}`,
+			Content: heredoc.Doc(`
+				variable "test" {
+				  type = list(any)
+				}
+			`),
 			Expected: helper.Issues{
 				{
 					Rule:    NewStyleGuideTypeVariablesExceptAnyRule(),
@@ -49,9 +54,11 @@ func TestStyleGuideTypeVariablesExceptAnyRule(t *testing.T) {
 		},
 		{
 			Name: "variable with type set of any",
-			Content: `variable "test" {
-  type = set(any)
-}`,
+			Content: heredoc.Doc(`
+				variable "test" {
+				  type = set(any)
+				}
+			`),
 			Expected: helper.Issues{
 				{
 					Rule:    NewStyleGuideTypeVariablesExceptAnyRule(),
@@ -66,9 +73,11 @@ func TestStyleGuideTypeVariablesExceptAnyRule(t *testing.T) {
 		},
 		{
 			Name: "variable with type map with any",
-			Content: `variable "test" {
-  type = map(any)
-}`,
+			Content: heredoc.Doc(`
+				variable "test" {
+				  type = map(any)
+				}
+			`),
 			Expected: helper.Issues{
 				{
 					Rule:    NewStyleGuideTypeVariablesExceptAnyRule(),
@@ -83,11 +92,13 @@ func TestStyleGuideTypeVariablesExceptAnyRule(t *testing.T) {
 		},
 		{
 			Name: "variable with type object with any",
-			Content: `variable "test" {
-  type = object({
-	nested = any
-  })
-}`,
+			Content: heredoc.Doc(`
+				variable "test" {
+				  type = object({
+					nested = any
+				  })
+				}
+			`),
 			Expected: helper.Issues{
 				{
 					Rule:    NewStyleGuideTypeVariablesExceptAnyRule(),
@@ -102,11 +113,13 @@ func TestStyleGuideTypeVariablesExceptAnyRule(t *testing.T) {
 		},
 		{
 			Name: "variable with list of object with any",
-			Content: `variable "test" {
-  type = list(object({
-	nested = any
-  }))
-}`,
+			Content: heredoc.Doc(`
+				variable "test" {
+				  type = list(object({
+					nested = any
+				  }))
+				}
+			`),
 			Expected: helper.Issues{
 				{
 					Rule:    NewStyleGuideTypeVariablesExceptAnyRule(),
@@ -121,9 +134,11 @@ func TestStyleGuideTypeVariablesExceptAnyRule(t *testing.T) {
 		},
 		{
 			Name: "variable with type tuple with any",
-			Content: `variable "test" {
-  type = tuple([string, any, number])
-}`,
+			Content: heredoc.Doc(`
+				variable "test" {
+				  type = tuple([string, any, number])
+				}
+			`),
 			Expected: helper.Issues{
 				{
 					Rule:    NewStyleGuideTypeVariablesExceptAnyRule(),
@@ -138,9 +153,11 @@ func TestStyleGuideTypeVariablesExceptAnyRule(t *testing.T) {
 		},
 		{
 			Name: "variable with type optional any",
-			Content: `variable "test" {
-  type = optional(any)
-}`,
+			Content: heredoc.Doc(`
+				variable "test" {
+				  type = optional(any)
+				}
+			`),
 			Expected: helper.Issues{
 				{
 					Rule:    NewStyleGuideTypeVariablesExceptAnyRule(),
@@ -155,9 +172,11 @@ func TestStyleGuideTypeVariablesExceptAnyRule(t *testing.T) {
 		},
 		{
 			Name: "variable with type optional any with default",
-			Content: `variable "test" {
-  type = optional(any, "default")
-}`,
+			Content: heredoc.Doc(`
+				variable "test" {
+				  type = optional(any, "default")
+				}
+			`),
 			Expected: helper.Issues{
 				{
 					Rule:    NewStyleGuideTypeVariablesExceptAnyRule(),
@@ -172,11 +191,13 @@ func TestStyleGuideTypeVariablesExceptAnyRule(t *testing.T) {
 		},
 		{
 			Name: "variable with object containing optional any",
-			Content: `variable "test" {
-  type = object({
-	nested = optional(any)
-  })
-}`,
+			Content: heredoc.Doc(`
+				variable "test" {
+				  type = object({
+					nested = optional(any)
+				  })
+				}
+			`),
 			Expected: helper.Issues{
 				{
 					Rule:    NewStyleGuideTypeVariablesExceptAnyRule(),
@@ -191,32 +212,40 @@ func TestStyleGuideTypeVariablesExceptAnyRule(t *testing.T) {
 		},
 		{
 			Name: "variable with tuple without any",
-			Content: `variable "test" {
-  type = tuple([string, number, bool])
-}`,
+			Content: heredoc.Doc(`
+				variable "test" {
+				  type = tuple([string, number, bool])
+				}
+			`),
 			Expected: helper.Issues{},
 		},
 		{
 			Name: "variable with optional without any",
-			Content: `variable "test" {
-  type = object({
-	nested = optional(string, "default")
-  })
-}`,
+			Content: heredoc.Doc(`
+				variable "test" {
+				  type = object({
+					nested = optional(string, "default")
+				  })
+				}
+			`),
 			Expected: helper.Issues{},
 		},
 		{
 			Name: "variable with specific type",
-			Content: `variable "test" {
-  type = string
-}`,
+			Content: heredoc.Doc(`
+				variable "test" {
+				  type = string
+				}
+			`),
 			Expected: helper.Issues{},
 		},
 		{
 			Name: "variable without type",
-			Content: `variable "test" {
-  description = "A variable without a type"
-}`,
+			Content: heredoc.Doc(`
+				variable "test" {
+				  description = "A variable without a type"
+				}
+			`),
 			Expected: helper.Issues{},
 		},
 	}

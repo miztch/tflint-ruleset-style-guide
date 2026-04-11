@@ -3,6 +3,7 @@ package rules
 import (
 	"testing"
 
+	"github.com/MakeNowJust/heredoc/v2"
 	"github.com/hashicorp/hcl/v2"
 	"github.com/terraform-linters/tflint-plugin-sdk/helper"
 )
@@ -15,10 +16,12 @@ func TestStyleGuideMetaArgumentsBlankLineRule(t *testing.T) {
 	}{
 		{
 			Name: "missing blank line after count",
-			Content: `resource "aws_instance" "example" {
-  count = 1
-  ami   = "ami-123"
-}`,
+			Content: heredoc.Doc(`
+				resource "aws_instance" "example" {
+				  count = 1
+				  ami   = "ami-123"
+				}
+			`),
 			Expected: helper.Issues{
 				{
 					Rule:    NewStyleGuideMetaArgumentsBlankLineRule(),
@@ -33,10 +36,12 @@ func TestStyleGuideMetaArgumentsBlankLineRule(t *testing.T) {
 		},
 		{
 			Name: "missing blank line after for_each",
-			Content: `resource "aws_instance" "example" {
-  for_each = toset(["a", "b"])
-  ami      = "ami-123"
-}`,
+			Content: heredoc.Doc(`
+				resource "aws_instance" "example" {
+				  for_each = toset(["a", "b"])
+				  ami      = "ami-123"
+				}
+			`),
 			Expected: helper.Issues{
 				{
 					Rule:    NewStyleGuideMetaArgumentsBlankLineRule(),
@@ -51,10 +56,12 @@ func TestStyleGuideMetaArgumentsBlankLineRule(t *testing.T) {
 		},
 		{
 			Name: "missing blank line after source",
-			Content: `module "example" {
-  source  = "./modules/example"
-  version = "1.0.0"
-}`,
+			Content: heredoc.Doc(`
+				module "example" {
+				  source  = "./modules/example"
+				  version = "1.0.0"
+				}
+			`),
 			Expected: helper.Issues{
 				{
 					Rule:    NewStyleGuideMetaArgumentsBlankLineRule(),
@@ -69,10 +76,12 @@ func TestStyleGuideMetaArgumentsBlankLineRule(t *testing.T) {
 		},
 		{
 			Name: "missing blank line after provider",
-			Content: `resource "aws_instance" "example" {
-  provider = aws.west
-  ami      = "ami-123"
-}`,
+			Content: heredoc.Doc(`
+				resource "aws_instance" "example" {
+				  provider = aws.west
+				  ami      = "ami-123"
+				}
+			`),
 			Expected: helper.Issues{
 				{
 					Rule:    NewStyleGuideMetaArgumentsBlankLineRule(),
@@ -87,10 +96,12 @@ func TestStyleGuideMetaArgumentsBlankLineRule(t *testing.T) {
 		},
 		{
 			Name: "missing blank line after provider in data source",
-			Content: `data "aws_ami" "ubuntu" {
-  provider    = aws.west
-  most_recent = true
-}`,
+			Content: heredoc.Doc(`
+				data "aws_ami" "ubuntu" {
+				  provider    = aws.west
+				  most_recent = true
+				}
+			`),
 			Expected: helper.Issues{
 				{
 					Rule:    NewStyleGuideMetaArgumentsBlankLineRule(),
@@ -105,13 +116,15 @@ func TestStyleGuideMetaArgumentsBlankLineRule(t *testing.T) {
 		},
 		{
 			Name: "missing blank line after providers",
-			Content: `module "example" {
-  source    = "./modules/example"
-  providers = {
-    aws = aws.west
-  }
-  version = "1.0.0"
-}`,
+			Content: heredoc.Doc(`
+				module "example" {
+				  source    = "./modules/example"
+				  providers = {
+				    aws = aws.west
+				  }
+				  version = "1.0.0"
+				}
+			`),
 			Expected: helper.Issues{
 				{
 					Rule:    NewStyleGuideMetaArgumentsBlankLineRule(),
@@ -126,18 +139,22 @@ func TestStyleGuideMetaArgumentsBlankLineRule(t *testing.T) {
 		},
 		{
 			Name: "no issue when count is the only attribute",
-			Content: `resource "aws_instance" "example" {
-  count = 1
-}`,
+			Content: heredoc.Doc(`
+				resource "aws_instance" "example" {
+				  count = 1
+				}
+			`),
 			Expected: helper.Issues{},
 		},
 		{
 			Name: "count is the last item",
-			Content: `resource "aws_instance" "example" {
-  ami   = "ami-123"
+			Content: heredoc.Doc(`
+				resource "aws_instance" "example" {
+				  ami   = "ami-123"
 
-  count = 1
-}`,
+				  count = 1
+				}
+			`),
 			Expected: helper.Issues{
 				{
 					Rule:    NewStyleGuideMetaArgumentsBlankLineRule(),
@@ -152,11 +169,13 @@ func TestStyleGuideMetaArgumentsBlankLineRule(t *testing.T) {
 		},
 		{
 			Name: "for_each is the last item",
-			Content: `resource "aws_instance" "example" {
-  ami = "ami-123"
+			Content: heredoc.Doc(`
+				resource "aws_instance" "example" {
+				  ami = "ami-123"
 
-  for_each = toset(["a", "b"])
-}`,
+				  for_each = toset(["a", "b"])
+				}
+			`),
 			Expected: helper.Issues{
 				{
 					Rule:    NewStyleGuideMetaArgumentsBlankLineRule(),
@@ -171,88 +190,104 @@ func TestStyleGuideMetaArgumentsBlankLineRule(t *testing.T) {
 		},
 		{
 			Name: "no issue when provider is the last item",
-			Content: `resource "aws_instance" "example" {
-  ami = "ami-123"
+			Content: heredoc.Doc(`
+				resource "aws_instance" "example" {
+				  ami = "ami-123"
 
-  provider = aws.west
-}`,
+				  provider = aws.west
+				}
+			`),
 			Expected: helper.Issues{},
 		},
 		{
 			Name: "no issue when provider is the last item in data source",
-			Content: `data "aws_ami" "ubuntu" {
-  most_recent = true
+			Content: heredoc.Doc(`
+				data "aws_ami" "ubuntu" {
+				  most_recent = true
 
-  provider = aws.west
-}`,
+				  provider = aws.west
+				}
+			`),
 			Expected: helper.Issues{},
 		},
 		{
 			Name: "no issue when providers is the last item",
-			Content: `module "example" {
-  source = "./modules/example"
+			Content: heredoc.Doc(`
+				module "example" {
+				  source = "./modules/example"
 
-  providers = {
-    aws = aws.west
-  }
-}`,
+				  providers = {
+				    aws = aws.west
+				  }
+				}
+			`),
 			Expected: helper.Issues{},
 		},
 		{
 			Name: "no issue when source is the last item",
-			Content: `module "example" {
-  version = "1.0.0"
+			Content: heredoc.Doc(`
+				module "example" {
+				  version = "1.0.0"
 
-  source = "./modules/example"
-}`,
+				  source = "./modules/example"
+				}
+			`),
 			Expected: helper.Issues{},
 		},
 		{
 			Name: "no issue when source is a regular attribute in resource (not a meta-argument)",
-			Content: `resource "aws_s3_object" "example" {
-  bucket = "my-bucket"
-  key    = "file.txt"
-  source = "path/to/file.txt"
-}`,
+			Content: heredoc.Doc(`
+				resource "aws_s3_object" "example" {
+				  bucket = "my-bucket"
+				  key    = "file.txt"
+				  source = "path/to/file.txt"
+				}
+			`),
 			Expected: helper.Issues{},
 		},
 		{
 			Name: "no issue when provider is a regular attribute in action block",
-			Content: `resource "aws_codepipeline" "example" {
-  name     = "example"
-  role_arn = "arn:aws:iam::123456789012:role/example"
+			Content: heredoc.Doc(`
+				resource "aws_codepipeline" "example" {
+				  name     = "example"
+				  role_arn = "arn:aws:iam::123456789012:role/example"
 
-  stage {
-    name = "Source"
+				  stage {
+				    name = "Source"
 
-    action {
-      name     = "Source"
-      category = "Source"
-      owner    = "AWS"
-      provider = "CodeCommit"
-    }
-  }
-}`,
+				    action {
+				      name     = "Source"
+				      category = "Source"
+				      owner    = "AWS"
+				      provider = "CodeCommit"
+				    }
+				  }
+				}
+			`),
 			Expected: helper.Issues{},
 		},
 		{
 			Name: "no issue when two leading meta arguments are consecutive",
-			Content: `resource "aws_instance" "example" {
-  for_each = toset(["a"])
-  count    = 1
+			Content: heredoc.Doc(`
+				resource "aws_instance" "example" {
+				  for_each = toset(["a"])
+				  count    = 1
 
-  ami = "ami-123"
-}`,
+				  ami = "ami-123"
+				}
+			`),
 			Expected: helper.Issues{},
 		},
 		{
 			Name: "missing blank line before lifecycle",
-			Content: `resource "aws_instance" "example" {
-  ami = "ami-123"
-  lifecycle {
-    prevent_destroy = true
-  }
-}`,
+			Content: heredoc.Doc(`
+				resource "aws_instance" "example" {
+				  ami = "ami-123"
+				  lifecycle {
+				    prevent_destroy = true
+				  }
+				}
+			`),
 			Expected: helper.Issues{
 				{
 					Rule:    NewStyleGuideMetaArgumentsBlankLineRule(),
@@ -267,12 +302,14 @@ func TestStyleGuideMetaArgumentsBlankLineRule(t *testing.T) {
 		},
 		{
 			Name: "missing blank line before connection",
-			Content: `resource "aws_instance" "example" {
-  ami = "ami-123"
-  connection {
-    type = "ssh"
-  }
-}`,
+			Content: heredoc.Doc(`
+				resource "aws_instance" "example" {
+				  ami = "ami-123"
+				  connection {
+				    type = "ssh"
+				  }
+				}
+			`),
 			Expected: helper.Issues{
 				{
 					Rule:    NewStyleGuideMetaArgumentsBlankLineRule(),
@@ -287,12 +324,14 @@ func TestStyleGuideMetaArgumentsBlankLineRule(t *testing.T) {
 		},
 		{
 			Name: "missing blank line before provisioner",
-			Content: `resource "aws_instance" "example" {
-  ami = "ami-123"
-  provisioner "local-exec" {
-    command = "echo hello"
-  }
-}`,
+			Content: heredoc.Doc(`
+				resource "aws_instance" "example" {
+				  ami = "ami-123"
+				  provisioner "local-exec" {
+				    command = "echo hello"
+				  }
+				}
+			`),
 			Expected: helper.Issues{
 				{
 					Rule:    NewStyleGuideMetaArgumentsBlankLineRule(),
@@ -307,10 +346,12 @@ func TestStyleGuideMetaArgumentsBlankLineRule(t *testing.T) {
 		},
 		{
 			Name: "missing blank line before depends_on",
-			Content: `resource "aws_instance" "example" {
-  ami        = "ami-123"
-  depends_on = [aws_vpc.example]
-}`,
+			Content: heredoc.Doc(`
+				resource "aws_instance" "example" {
+				  ami        = "ami-123"
+				  depends_on = [aws_vpc.example]
+				}
+			`),
 			Expected: helper.Issues{
 				{
 					Rule:    NewStyleGuideMetaArgumentsBlankLineRule(),
@@ -325,13 +366,15 @@ func TestStyleGuideMetaArgumentsBlankLineRule(t *testing.T) {
 		},
 		{
 			Name: "missing blank line before consecutive trailing meta arguments",
-			Content: `resource "aws_instance" "example" {
-  ami        = "ami-123"
-  depends_on = [aws_vpc.example]
-  lifecycle {
-    prevent_destroy = true
-  }
-}`,
+			Content: heredoc.Doc(`
+				resource "aws_instance" "example" {
+				  ami        = "ami-123"
+				  depends_on = [aws_vpc.example]
+				  lifecycle {
+				    prevent_destroy = true
+				  }
+				}
+			`),
 			Expected: helper.Issues{
 				{
 					Rule:    NewStyleGuideMetaArgumentsBlankLineRule(),
@@ -355,35 +398,41 @@ func TestStyleGuideMetaArgumentsBlankLineRule(t *testing.T) {
 		},
 		{
 			Name: "no issue when trailing meta argument is the only content",
-			Content: `resource "aws_instance" "example" {
-  lifecycle {
-    prevent_destroy = true
-  }
-}`,
+			Content: heredoc.Doc(`
+				resource "aws_instance" "example" {
+				  lifecycle {
+				    prevent_destroy = true
+				  }
+				}
+			`),
 			Expected: helper.Issues{},
 		},
 		{
 			Name: "no issue when all blank lines are present",
-			Content: `resource "aws_instance" "example" {
-  count = 1
+			Content: heredoc.Doc(`
+				resource "aws_instance" "example" {
+				  count = 1
 
-  ami = "ami-123"
+				  ami = "ami-123"
 
-  lifecycle {
-    prevent_destroy = true
-  }
-}`,
+				  lifecycle {
+				    prevent_destroy = true
+				  }
+				}
+			`),
 			Expected: helper.Issues{},
 		},
 		{
 			Name: "no issue when comment line precedes trailing meta argument",
-			Content: `resource "aws_instance" "example" {
-  ami = "ami-123"
-  # This is required to prevent accidental deletion
-  lifecycle {
-    prevent_destroy = true
-  }
-}`,
+			Content: heredoc.Doc(`
+				resource "aws_instance" "example" {
+				  ami = "ami-123"
+				  # This is required to prevent accidental deletion
+				  lifecycle {
+				    prevent_destroy = true
+				  }
+				}
+			`),
 			Expected: helper.Issues{},
 		},
 	}
@@ -411,87 +460,109 @@ func TestStyleGuideMetaArgumentsBlankLineRuleFix(t *testing.T) {
 	}{
 		{
 			Name: "fix missing blank line after count",
-			Content: `resource "aws_instance" "example" {
-  count = 1
-  ami   = "ami-123"
-}`,
+			Content: heredoc.Doc(`
+				resource "aws_instance" "example" {
+				  count = 1
+				  ami   = "ami-123"
+				}
+			`),
 			Fixed: map[string]string{
-				"main.tf": `resource "aws_instance" "example" {
-  count = 1
+				"main.tf": heredoc.Doc(`
+					resource "aws_instance" "example" {
+					  count = 1
 
-  ami = "ami-123"
-}`,
+					  ami = "ami-123"
+					}
+				`),
 			},
 		},
 		{
 			Name: "fix missing blank line after for_each",
-			Content: `resource "aws_instance" "example" {
-  for_each = toset(["a", "b"])
-  ami      = "ami-123"
-}`,
+			Content: heredoc.Doc(`
+				resource "aws_instance" "example" {
+				  for_each = toset(["a", "b"])
+				  ami      = "ami-123"
+				}
+			`),
 			Fixed: map[string]string{
-				"main.tf": `resource "aws_instance" "example" {
-  for_each = toset(["a", "b"])
+				"main.tf": heredoc.Doc(`
+					resource "aws_instance" "example" {
+					  for_each = toset(["a", "b"])
 
-  ami = "ami-123"
-}`,
+					  ami = "ami-123"
+					}
+				`),
 			},
 		},
 		{
 			Name: "fix missing blank line after source",
-			Content: `module "example" {
-  source  = "./modules/example"
-  version = "1.0.0"
-}`,
+			Content: heredoc.Doc(`
+				module "example" {
+				  source  = "./modules/example"
+				  version = "1.0.0"
+				}
+			`),
 			Fixed: map[string]string{
-				"main.tf": `module "example" {
-  source = "./modules/example"
+				"main.tf": heredoc.Doc(`
+					module "example" {
+					  source = "./modules/example"
 
-  version = "1.0.0"
-}`,
+					  version = "1.0.0"
+					}
+				`),
 			},
 		},
 		{
 			Name: "fix missing blank line after providers (multi-line value)",
-			Content: `module "example" {
-  source    = "./modules/example"
-  providers = {
-    aws = aws.west
-  }
-  version = "1.0.0"
-}`,
+			Content: heredoc.Doc(`
+				module "example" {
+				  source    = "./modules/example"
+				  providers = {
+				    aws = aws.west
+				  }
+				  version = "1.0.0"
+				}
+			`),
 			Fixed: map[string]string{
-				"main.tf": `module "example" {
-  source = "./modules/example"
-  providers = {
-    aws = aws.west
-  }
+				"main.tf": heredoc.Doc(`
+					module "example" {
+					  source = "./modules/example"
+					  providers = {
+					    aws = aws.west
+					  }
 
-  version = "1.0.0"
-}`,
+					  version = "1.0.0"
+					}
+				`),
 			},
 		},
 		{
 			Name: "fix missing blank line before depends_on",
-			Content: `resource "aws_instance" "example" {
-  ami        = "ami-123"
-  depends_on = [aws_vpc.example]
-}`,
+			Content: heredoc.Doc(`
+				resource "aws_instance" "example" {
+				  ami        = "ami-123"
+				  depends_on = [aws_vpc.example]
+				}
+			`),
 			Fixed: map[string]string{
-				"main.tf": `resource "aws_instance" "example" {
-  ami = "ami-123"
+				"main.tf": heredoc.Doc(`
+					resource "aws_instance" "example" {
+					  ami = "ami-123"
 
-  depends_on = [aws_vpc.example]
-}`,
+					  depends_on = [aws_vpc.example]
+					}
+				`),
 			},
 		},
 		{
 			Name: "lastItem is not fixed",
-			Content: `resource "aws_instance" "example" {
-  ami = "ami-123"
+			Content: heredoc.Doc(`
+				resource "aws_instance" "example" {
+				  ami = "ami-123"
 
-  count = 1
-}`,
+				  count = 1
+				}
+			`),
 			Fixed: map[string]string{},
 		},
 	}
