@@ -104,10 +104,9 @@ var trailingMetaArgs = map[string]metaArgConfig{
 // bodyItem represents a single attribute or block within an HCL body,
 // unified so they can be sorted by line number.
 type bodyItem struct {
-	name      string
-	startLine int
-	endLine   int
-	isBlock   bool
+	name    string
+	rng     hcl.Range
+	isBlock bool
 }
 
 // Check checks whether meta arguments are properly separated by blank lines.
@@ -150,11 +149,13 @@ func (r *StyleGuideMetaArgumentsBlankLineRule) checkBlock(runner tflint.Runner, 
 
 			if i+1 < len(items) {
 				next := items[i+1]
-				if !hasBlankLineBetween(item.endLine, next.startLine) {
+				if !hasBlankLineBetween(item.rng.End.Line, next.rng.Start.Line) {
 					if _, nextIsAlsoLeading := leadingMetaArgs[next.name]; !nextIsAlsoLeading {
 						rng := attrOrBlockRange(block, item)
 						msg := r.Message("leading")
-						if err := runner.EmitIssue(r, msg, rng); err != nil {
+						if err := runner.EmitIssueWithFix(r, msg, rng, func(f tflint.Fixer) error {
+							return f.InsertTextAfter(item.rng, "\n")
+						}); err != nil {
 							return err
 						}
 					}
@@ -163,7 +164,9 @@ func (r *StyleGuideMetaArgumentsBlankLineRule) checkBlock(runner tflint.Runner, 
 				// This leading meta arg should not be the last item
 				rng := attrOrBlockRange(block, item)
 				msg := r.Message("lastItem")
-				if err := runner.EmitIssue(r, msg, rng); err != nil {
+				if err := runner.EmitIssueWithFix(r, msg, rng, func(f tflint.Fixer) error {
+					return tflint.ErrFixNotSupported
+				}); err != nil {
 					return err
 				}
 			}
@@ -178,10 +181,12 @@ func (r *StyleGuideMetaArgumentsBlankLineRule) checkBlock(runner tflint.Runner, 
 
 			if i > 0 {
 				prev := items[i-1]
-				if !hasBlankLineBetween(prev.endLine, item.startLine) {
+				if !hasBlankLineBetween(prev.rng.End.Line, item.rng.Start.Line) {
 					rng := attrOrBlockRange(block, item)
 					msg := r.Message("trailing")
-					if err := runner.EmitIssue(r, msg, rng); err != nil {
+					if err := runner.EmitIssueWithFix(r, msg, rng, func(f tflint.Fixer) error {
+						return f.InsertTextBefore(item.rng, "\n")
+					}); err != nil {
 						return err
 					}
 				}
@@ -199,24 +204,22 @@ func collectItems(body *hclsyntax.Body) []bodyItem {
 
 	for name, attr := range body.Attributes {
 		items = append(items, bodyItem{
-			name:      name,
-			startLine: attr.Range().Start.Line,
-			endLine:   attr.Range().End.Line,
-			isBlock:   false,
+			name:    name,
+			rng:     attr.Range(),
+			isBlock: false,
 		})
 	}
 
 	for _, block := range body.Blocks {
 		items = append(items, bodyItem{
-			name:      block.Type,
-			startLine: block.Range().Start.Line,
-			endLine:   block.Range().End.Line,
-			isBlock:   true,
+			name:    block.Type,
+			rng:     block.Range(),
+			isBlock: true,
 		})
 	}
 
 	sort.Slice(items, func(i, j int) bool {
-		return items[i].startLine < items[j].startLine
+		return items[i].rng.Start.Line < items[j].rng.Start.Line
 	})
 
 	return items
@@ -241,7 +244,7 @@ func isValidForBlock(config metaArgConfig, blockType string) bool {
 func attrOrBlockRange(block *hclsyntax.Block, item bodyItem) hcl.Range {
 	if item.isBlock {
 		for _, b := range block.Body.Blocks {
-			if b.Type == item.name && b.Range().Start.Line == item.startLine {
+			if b.Type == item.name && b.Range().Start.Line == item.rng.Start.Line {
 				return b.OpenBraceRange
 			}
 		}
