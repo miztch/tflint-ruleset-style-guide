@@ -17,6 +17,12 @@ type StyleGuideTypeRepetitionRule struct {
 	tflint.DefaultRule
 }
 
+type styleGuideTypeRepetitionRuleConfig struct {
+	// IgnoredProviderPrefixes is a configurable list of provider name prefixes to ignore
+	// e.g. if "aws" is in the list, it will ignore repetition of "aws" in resource and data source names
+	IgnoredProviderPrefixes []string `hclext:"ignored_provider_prefixes,optional"`
+}
+
 // NewStyleGuideTypeRepetitionRule creates a new rule.
 func NewStyleGuideTypeRepetitionRule() *StyleGuideTypeRepetitionRule {
 	return &StyleGuideTypeRepetitionRule{}
@@ -66,6 +72,16 @@ func (r *StyleGuideTypeRepetitionRule) Check(runner tflint.Runner) error {
 		return nil
 	}
 
+	config := &styleGuideTypeRepetitionRuleConfig{}
+	if err := runner.DecodeRuleConfig(r.Name(), config); err != nil {
+		return err
+	}
+
+	ignoredPrefixes := make(map[string]struct{})
+	for _, p := range config.IgnoredProviderPrefixes {
+		ignoredPrefixes[strings.ToLower(p)] = struct{}{}
+	}
+
 	body, err := runner.GetModuleContent(&hclext.BodySchema{
 		Blocks: []hclext.BlockSchema{
 			{
@@ -88,7 +104,7 @@ func (r *StyleGuideTypeRepetitionRule) Check(runner tflint.Runner) error {
 		}
 		typeName := block.Labels[0]
 		name := block.Labels[1]
-		if hasRepeatedTypeSegment(typeName, name) {
+		if hasRepeatedTypeSegment(typeName, name, ignoredPrefixes) {
 			rng := block.DefRange
 			msg := r.Message(block.Type)
 
@@ -101,7 +117,7 @@ func (r *StyleGuideTypeRepetitionRule) Check(runner tflint.Runner) error {
 	return nil
 }
 
-func hasRepeatedTypeSegment(typeName, name string) bool {
+func hasRepeatedTypeSegment(typeName, name string, ignoredPrefixes map[string]struct{}) bool {
 	typeSegs := strings.Split(strings.ToLower(typeName), "_")
 	nameSegs := splitName(strings.ToLower(name))
 
@@ -111,6 +127,10 @@ func hasRepeatedTypeSegment(typeName, name string) bool {
 	}
 
 	for _, ts := range typeSegs {
+		if _, ignored := ignoredPrefixes[ts]; ignored {
+			continue
+		}
+
 		if _, ok := nameSet[ts]; ok {
 			return true
 		}

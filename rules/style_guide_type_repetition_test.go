@@ -11,6 +11,7 @@ func TestStyleGuideTypeRepetitionRule(t *testing.T) {
 	cases := []struct {
 		Name     string
 		Content  string
+		Config   string
 		Expected helper.Issues
 	}{
 		{
@@ -125,13 +126,45 @@ data "aws_instance" "web_instance" {
 }`,
 			Expected: helper.Issues{},
 		},
+		{
+			Name: "provider prefix repeated in name warns by default",
+			Content: `resource "aws_s3_bucket" "aws_backup" {
+  bucket = "my-backup-bucket"
+}`,
+			Expected: helper.Issues{
+				{
+					Rule:    NewStyleGuideTypeRepetitionRule(),
+					Message: "Resource name should not repeat its resource type",
+					Range: hcl.Range{
+						Filename: "main.tf",
+						Start:    hcl.Pos{Line: 1, Column: 1},
+						End:      hcl.Pos{Line: 1, Column: 38},
+					},
+				},
+			},
+		},
+		{
+			Name: "provider prefix repetition ignored with config",
+			Content: `resource "aws_s3_bucket" "aws_backup" {
+  bucket = "my-backup-bucket"
+}`,
+			Config: `rule "style_guide_type_repetition" {
+  enabled                   = true
+  ignored_provider_prefixes = ["aws"]
+}`,
+			Expected: helper.Issues{},
+		},
 	}
 
 	rule := NewStyleGuideTypeRepetitionRule()
 
 	for _, tc := range cases {
 		t.Run(tc.Name, func(t *testing.T) {
-			runner := helper.TestRunner(t, map[string]string{"main.tf": tc.Content})
+			files := map[string]string{"main.tf": tc.Content}
+			if tc.Config != "" {
+				files[".tflint.hcl"] = tc.Config
+			}
+			runner := helper.TestRunner(t, files)
 
 			if err := rule.Check(runner); err != nil {
 				t.Fatalf("Unexpected error occurred: %s", err)
