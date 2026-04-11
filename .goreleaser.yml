@@ -34,8 +34,4 @@ signs:
 release:
   github:
 changelog:
-  sort: asc
-  filters:
-    exclude:
-      - "^docs:"
-      - "^examples:"
+  use: github-native
