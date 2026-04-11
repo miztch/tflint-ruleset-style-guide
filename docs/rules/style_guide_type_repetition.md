@@ -70,3 +70,14 @@ data "aws_s3_bucket" "app" {
 ```
 
 See https://developer.hashicorp.com/terraform/language/style#resource-naming for better naming.
+
+### Custom configuration
+
+```hcl
+rule "style_guide_type_repetition" {
+  enabled                   = true
+  ignored_provider_prefixes = ["aws"]
+}
+```
+
+- `ignored_provider_prefixes`: A list of provider prefixes to exclude from the repetition check. The provider prefix is the first segment of a resource type (e.g. `aws` in `aws_iam_role`). By default, no prefixes are ignored.
