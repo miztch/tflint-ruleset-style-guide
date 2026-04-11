@@ -3,6 +3,7 @@ package rules
 import (
 	"testing"
 
+	"github.com/MakeNowJust/heredoc/v2"
 	"github.com/hashicorp/hcl/v2"
 	"github.com/terraform-linters/tflint-plugin-sdk/helper"
 )
@@ -16,9 +17,11 @@ func TestStyleGuideTypeRepetitionRule(t *testing.T) {
 	}{
 		{
 			Name: "whole type repeated",
-			Content: `resource "aws_iam_role" "iam_role" {
-  name = "test-iam-role"
-}`,
+			Content: heredoc.Doc(`
+				resource "aws_iam_role" "iam_role" {
+				  name = "test-iam-role"
+				}
+			`),
 			Expected: helper.Issues{
 				{
 					Rule:    NewStyleGuideTypeRepetitionRule(),
@@ -33,9 +36,11 @@ func TestStyleGuideTypeRepetitionRule(t *testing.T) {
 		},
 		{
 			Name: "single word type repeated",
-			Content: `resource "aws_codepipeline" "codepipeline" {
-  name = "test-pipeline"
-}`,
+			Content: heredoc.Doc(`
+				resource "aws_codepipeline" "codepipeline" {
+				  name = "test-pipeline"
+				}
+			`),
 			Expected: helper.Issues{
 				{
 					Rule:    NewStyleGuideTypeRepetitionRule(),
@@ -50,13 +55,15 @@ func TestStyleGuideTypeRepetitionRule(t *testing.T) {
 		},
 		{
 			Name: "partially type repeated",
-			Content: `resource "aws_iam_role" "lambda_role" {
-  name = "test-lambda-role"
-}
+			Content: heredoc.Doc(`
+				resource "aws_iam_role" "lambda_role" {
+				  name = "test-lambda-role"
+				}
 
-data "aws_instance" "web_instance" {
-  instance_id = "i-instanceid"
-}`,
+				data "aws_instance" "web_instance" {
+				  instance_id = "i-instanceid"
+				}
+			`),
 			Expected: helper.Issues{
 				{
 					Rule:    NewStyleGuideTypeRepetitionRule(),
@@ -80,9 +87,11 @@ data "aws_instance" "web_instance" {
 		},
 		{
 			Name: "kebab case",
-			Content: `resource "aws_iam_role" "lambda-role" {
-  name = "test-lambda-role"
-}`,
+			Content: heredoc.Doc(`
+				resource "aws_iam_role" "lambda-role" {
+				  name = "test-lambda-role"
+				}
+			`),
 			Expected: helper.Issues{
 				{
 					Rule:    NewStyleGuideTypeRepetitionRule(),
@@ -97,9 +106,11 @@ data "aws_instance" "web_instance" {
 		},
 		{
 			Name: "dot separated",
-			Content: `resource "aws_iam_role" "lambda.role" {
-  name = "test-lambda-role"
-}`,
+			Content: heredoc.Doc(`
+				resource "aws_iam_role" "lambda.role" {
+				  name = "test-lambda-role"
+				}
+			`),
 			Expected: helper.Issues{
 				{
 					Rule:    NewStyleGuideTypeRepetitionRule(),
@@ -114,23 +125,29 @@ data "aws_instance" "web_instance" {
 		},
 		{
 			Name: "no issues",
-			Content: `resource "aws_iam_role" "lambda" {
-  name = "test-lambda-role"
-}`,
+			Content: heredoc.Doc(`
+				resource "aws_iam_role" "lambda" {
+				  name = "test-lambda-role"
+				}
+			`),
 			Expected: helper.Issues{},
 		},
 		{
 			Name: "no issue for camel case",
-			Content: `resource "aws_iam_role" "lambdaRole" {
-  name = "test-lambda-role"
-}`,
+			Content: heredoc.Doc(`
+				resource "aws_iam_role" "lambdaRole" {
+				  name = "test-lambda-role"
+				}
+			`),
 			Expected: helper.Issues{},
 		},
 		{
 			Name: "provider prefix repeated in name warns by default",
-			Content: `resource "aws_s3_bucket" "aws_backup" {
-  bucket = "my-backup-bucket"
-}`,
+			Content: heredoc.Doc(`
+				resource "aws_s3_bucket" "aws_backup" {
+				  bucket = "my-backup-bucket"
+				}
+			`),
 			Expected: helper.Issues{
 				{
 					Rule:    NewStyleGuideTypeRepetitionRule(),
@@ -145,13 +162,17 @@ data "aws_instance" "web_instance" {
 		},
 		{
 			Name: "provider prefix repetition ignored with config",
-			Content: `resource "aws_s3_bucket" "aws_backup" {
-  bucket = "my-backup-bucket"
-}`,
-			Config: `rule "style_guide_type_repetition" {
-  enabled                   = true
-  ignored_provider_prefixes = ["aws"]
-}`,
+			Content: heredoc.Doc(`
+				resource "aws_s3_bucket" "aws_backup" {
+				  bucket = "my-backup-bucket"
+				}
+			`),
+			Config: heredoc.Doc(`
+				rule "style_guide_type_repetition" {
+				  enabled                   = true
+				  ignored_provider_prefixes = ["aws"]
+				}
+			`),
 			Expected: helper.Issues{},
 		},
 	}
