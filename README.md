@@ -11,6 +11,8 @@ A TFLint ruleset based on the [Terraform Style Guide](https://developer.hashicor
 | [style_guide_typed_variables_except_any](docs/rules/style_guide_typed_variables_except_any.md) | Disallow `any` as variable type | WARNING | ✔ |
 | [style_guide_type_repetition](docs/rules/style_guide_type_repetition.md) | Disallow repeating the resource type in the resource name | WARNING | ✔ |
 | [style_guide_meta_arguments_blank_line](docs/rules/style_guide_meta_arguments_blank_line.md) | Require blank lines around meta-arguments | WARNING | ✔ |
+| [style_guide_ordered_variable_arguments](docs/rules/style_guide_ordered_variable_arguments.md) | Require `variable` block arguments to be in the recommended order | WARNING | ✔ |
+| [style_guide_ordered_output_arguments](docs/rules/style_guide_ordered_output_arguments.md) | Require `output` block arguments to be in the recommended order | WARNING | ✔ |
 
 ## Installation
 
