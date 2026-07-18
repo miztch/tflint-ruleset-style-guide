@@ -2,9 +2,7 @@ package rules
 
 import (
 	"slices"
-	"sort"
 
-	"github.com/hashicorp/hcl/v2"
 	"github.com/hashicorp/hcl/v2/hclsyntax"
 	"github.com/miztch/tflint-ruleset-style-guide/project"
 	"github.com/terraform-linters/tflint-plugin-sdk/tflint"
@@ -101,14 +99,6 @@ var trailingMetaArgs = map[string]metaArgConfig{
 	},
 }
 
-// bodyItem represents a single attribute or block within an HCL body,
-// unified so they can be sorted by line number.
-type bodyItem struct {
-	name    string
-	rng     hcl.Range
-	isBlock bool
-}
-
 // Check checks whether meta arguments are properly separated by blank lines.
 func (r *StyleGuideMetaArgumentsBlankLineRule) Check(runner tflint.Runner) error {
 	files, err := runner.GetFiles()
@@ -197,34 +187,6 @@ func (r *StyleGuideMetaArgumentsBlankLineRule) checkBlock(runner tflint.Runner, 
 	return nil
 }
 
-// collectItems gathers all attributes and blocks from an HCL body into a
-// unified slice sorted by start line.
-func collectItems(body *hclsyntax.Body) []bodyItem {
-	var items []bodyItem
-
-	for name, attr := range body.Attributes {
-		items = append(items, bodyItem{
-			name:    name,
-			rng:     attr.Range(),
-			isBlock: false,
-		})
-	}
-
-	for _, block := range body.Blocks {
-		items = append(items, bodyItem{
-			name:    block.Type,
-			rng:     block.Range(),
-			isBlock: true,
-		})
-	}
-
-	sort.Slice(items, func(i, j int) bool {
-		return items[i].rng.Start.Line < items[j].rng.Start.Line
-	})
-
-	return items
-}
-
 // hasBlankLineBetween returns true if there is at least one blank line between
 // the end of one item and the start of the next.
 func hasBlankLineBetween(endLine, nextStartLine int) bool {
@@ -238,21 +200,4 @@ func isValidForBlock(config metaArgConfig, blockType string) bool {
 		return true
 	}
 	return slices.Contains(config.validBlocks, blockType)
-}
-
-// attrOrBlockRange returns the HCL range for a bodyItem within a given block.
-func attrOrBlockRange(block *hclsyntax.Block, item bodyItem) hcl.Range {
-	if item.isBlock {
-		for _, b := range block.Body.Blocks {
-			if b.Type == item.name && b.Range().Start.Line == item.rng.Start.Line {
-				return b.OpenBraceRange
-			}
-		}
-	}
-	for _, attr := range block.Body.Attributes {
-		if attr.Name == item.name {
-			return attr.NameRange
-		}
-	}
-	return block.DefRange()
 }
