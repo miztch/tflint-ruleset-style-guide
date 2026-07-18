@@ -17,19 +17,29 @@ type argumentOrderViolation struct {
 // an argument they should precede, according to the given rank map.
 // Arguments not present in the rank map are ignored.
 func findArgumentOrderViolations(block *hclsyntax.Block, ranks map[string]int) []argumentOrderViolation {
+	return findArgumentOrderViolationsByRank(block, func(item bodyItem) (int, bool) {
+		rank, ok := ranks[item.name]
+		return rank, ok
+	})
+}
+
+// findArgumentOrderViolationsByRank reports arguments in the block that appear
+// after an argument they should precede, according to the given rank function.
+// Items for which the rank function returns false are ignored.
+func findArgumentOrderViolationsByRank(block *hclsyntax.Block, rank func(bodyItem) (int, bool)) []argumentOrderViolation {
 	items := collectItems(block.Body)
 
 	var seen []bodyItem
 	var violations []argumentOrderViolation
 
 	for _, item := range items {
-		rank, ok := ranks[item.name]
+		itemRank, ok := rank(item)
 		if !ok {
 			continue
 		}
 
 		for _, prev := range seen {
-			if ranks[prev.name] > rank {
+			if prevRank, _ := rank(prev); prevRank > itemRank {
 				violations = append(violations, argumentOrderViolation{
 					name:   item.name,
 					before: prev.name,
