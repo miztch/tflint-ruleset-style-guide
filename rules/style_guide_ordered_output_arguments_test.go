@@ -14,7 +14,19 @@ func TestStyleGuideOrderedOutputArgumentsRule(t *testing.T) {
 		Expected helper.Issues
 	}{
 		{
-			Name: "arguments in recommended order",
+			Name: "arguments in recommended order with type",
+			Content: heredoc.Doc(`
+				output "instance_ip_addr" {
+				  type        = string
+				  description = "The private IP address of the instance"
+				  value       = aws_instance.web.private_ip
+				  sensitive   = false
+				}
+			`),
+			Expected: helper.Issues{},
+		},
+		{
+			Name: "arguments in recommended order without type",
 			Content: heredoc.Doc(`
 				output "instance_ip_addr" {
 				  description = "The private IP address of the instance"
@@ -23,6 +35,22 @@ func TestStyleGuideOrderedOutputArgumentsRule(t *testing.T) {
 				}
 			`),
 			Expected: helper.Issues{},
+		},
+		{
+			Name: "description before type",
+			Content: heredoc.Doc(`
+				output "instance_ip_addr" {
+				  description = "The private IP address of the instance"
+				  type        = string
+				  value       = aws_instance.web.private_ip
+				}
+			`),
+			Expected: helper.Issues{
+				{
+					Rule:    NewStyleGuideOrderedOutputArgumentsRule(),
+					Message: "'type' should be defined before 'description' (recommended order: type, description, value, sensitive)",
+				},
+			},
 		},
 		{
 			Name: "value before description",
@@ -35,7 +63,7 @@ func TestStyleGuideOrderedOutputArgumentsRule(t *testing.T) {
 			Expected: helper.Issues{
 				{
 					Rule:    NewStyleGuideOrderedOutputArgumentsRule(),
-					Message: "'description' should be defined before 'value' (recommended order: description, value, sensitive)",
+					Message: "'description' should be defined before 'value' (recommended order: type, description, value, sensitive)",
 				},
 			},
 		},
@@ -51,7 +79,7 @@ func TestStyleGuideOrderedOutputArgumentsRule(t *testing.T) {
 			Expected: helper.Issues{
 				{
 					Rule:    NewStyleGuideOrderedOutputArgumentsRule(),
-					Message: "'value' should be defined before 'sensitive' (recommended order: description, value, sensitive)",
+					Message: "'value' should be defined before 'sensitive' (recommended order: type, description, value, sensitive)",
 				},
 			},
 		},
@@ -107,7 +135,7 @@ func TestStyleGuideOrderedOutputArgumentsRule(t *testing.T) {
 			Expected: helper.Issues{
 				{
 					Rule:    NewStyleGuideOrderedOutputArgumentsRule(),
-					Message: "'description' should be defined before 'value' (recommended order: description, value, sensitive)",
+					Message: "'description' should be defined before 'value' (recommended order: type, description, value, sensitive)",
 				},
 			},
 		},

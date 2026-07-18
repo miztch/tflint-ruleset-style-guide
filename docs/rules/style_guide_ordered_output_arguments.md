@@ -2,11 +2,14 @@
 
 Warns when arguments in an `output` block are not in the recommended order:
 
-1. `description`
-2. `value`
-3. `sensitive`
+1. `type`
+2. `description`
+3. `value`
+4. `sensitive`
 
-Arguments not listed above (such as `depends_on` and `precondition` blocks) are not checked.
+`output` blocks can declare an explicit `type` constraint since Terraform 1.15.
+
+Arguments not listed above (such as `ephemeral`, `depends_on` and `precondition` blocks) are not checked.
 
 ### Example
 
@@ -39,8 +42,6 @@ https://developer.hashicorp.com/terraform/language/style#outputs
 > 1. Description
 > 1. Value
 > 1. Sensitive (optional)
-
-Note: although the style guide lists `Type` first, `output` blocks do not accept a `type` argument in the Terraform language, so this rule only checks `description`, `value` and `sensitive`.
 
 ### How To Fix
 

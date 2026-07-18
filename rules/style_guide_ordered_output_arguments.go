@@ -40,15 +40,17 @@ func (r *StyleGuideOrderedOutputArgumentsRule) Link() string {
 }
 
 // outputArgumentRanks is the recommended order of arguments in an output block.
+// Output blocks can declare a type constraint since Terraform 1.15.
 var outputArgumentRanks = map[string]int{
-	"description": 1,
-	"value":       2,
-	"sensitive":   3,
+	"type":        1,
+	"description": 2,
+	"value":       3,
+	"sensitive":   4,
 }
 
 // Message returns the rule message for a misplaced argument.
 func (r *StyleGuideOrderedOutputArgumentsRule) Message(name, before string) string {
-	return fmt.Sprintf("'%s' should be defined before '%s' (recommended order: description, value, sensitive)", name, before)
+	return fmt.Sprintf("'%s' should be defined before '%s' (recommended order: type, description, value, sensitive)", name, before)
 }
 
 // Check checks whether output block arguments are in the recommended order.
