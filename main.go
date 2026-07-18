@@ -15,6 +15,8 @@ func main() {
 			Version: project.Version,
 			Rules: []tflint.Rule{
 				rules.NewStyleGuideMetaArgumentsBlankLineRule(),
+				rules.NewStyleGuideOrderedOutputArgumentsRule(),
+				rules.NewStyleGuideOrderedVariableArgumentsRule(),
 				rules.NewStyleGuideTypeRepetitionRule(),
 				rules.NewStyleGuideTypeVariablesExceptAnyRule(),
 			},

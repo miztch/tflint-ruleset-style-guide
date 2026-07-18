@@ -6,4 +6,5 @@ const (
 	BlockTypeData     = "data"
 	BlockTypeModule   = "module"
 	BlockTypeVariable = "variable"
+	BlockTypeOutput   = "output"
 )
