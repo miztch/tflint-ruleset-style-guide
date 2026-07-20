@@ -4,6 +4,10 @@
 
 A TFLint ruleset based on the [Terraform Style Guide](https://developer.hashicorp.com/terraform/language/style).
 
+## Why this plugin?
+
+[`tflint-ruleset-terraform`](https://github.com/terraform-linters/tflint-ruleset-terraform), the default ruleset bundled with TFLint, doesn't cover all of the conventions in Terraform's official [Style Guide](https://developer.hashicorp.com/terraform/language/style) as of now. This plugin covers some of what's missing, so you can enforce more of the style guide as part of your normal `tflint` run.
+
 ## Rules
 
 | Name | Description | Severity | Enabled |
