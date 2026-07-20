@@ -14,6 +14,7 @@ func main() {
 			Name:    "style-guide",
 			Version: project.Version,
 			Rules: []tflint.Rule{
+				rules.NewStyleGuideAlphabeticalBlocksRule(),
 				rules.NewStyleGuideMetaArgumentsBlankLineRule(),
 				rules.NewStyleGuideOrderedOutputArgumentsRule(),
 				rules.NewStyleGuideOrderedResourceArgumentsRule(),
