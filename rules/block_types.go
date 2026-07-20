@@ -10,4 +10,5 @@ const (
 	BlockTypeTerraform = "terraform"
 	BlockTypeProvider  = "provider"
 	BlockTypeBackend   = "backend"
+	BlockTypeLocals    = "locals"
 )

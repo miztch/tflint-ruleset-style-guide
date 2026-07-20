@@ -16,6 +16,7 @@ func main() {
 			Rules: []tflint.Rule{
 				rules.NewStyleGuideAlphabeticalBlocksRule(),
 				rules.NewStyleGuideBlockPlacementRule(),
+				rules.NewStyleGuideLocalPlacementRule(),
 				rules.NewStyleGuideMetaArgumentsBlankLineRule(),
 				rules.NewStyleGuideOrderedOutputArgumentsRule(),
 				rules.NewStyleGuideOrderedResourceArgumentsRule(),
