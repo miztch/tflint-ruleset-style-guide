@@ -28,9 +28,6 @@ func (r *StyleGuideLocalPlacementRule) Name() string {
 }
 
 // Enabled returns whether the rule is enabled by default.
-// This rule is disabled by default because co-locating locals right above
-// the resources that use them is a reasonable, cohesion-friendly style that
-// this rule would flag. Opt-in for strict guide compliance.
 func (r *StyleGuideLocalPlacementRule) Enabled() bool {
 	return false
 }
@@ -68,16 +65,41 @@ func (r *StyleGuideLocalPlacementRule) Check(runner tflint.Runner) error {
 		return err
 	}
 
-	// local name -> file it's defined in, for locals defined outside locals.tf.
-	defined := map[string]string{}
+	defined, positionViolations := collectLocalDefinitions(files)
+	for _, rng := range positionViolations {
+		if err := runner.EmitIssue(r, r.MessagePosition(), rng); err != nil {
+			return err
+		}
+	}
+
+	referenceViolations, err := findMultiFileLocalReferences(runner, defined)
+	if err != nil {
+		return err
+	}
+	for _, v := range referenceViolations {
+		msg := r.MessageMultiFile(v.name, filepath.Base(v.definedIn), filepath.Base(v.referencedIn))
+		if err := runner.EmitIssue(r, msg, v.rng); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// collectLocalDefinitions scans every file for locals blocks outside
+// locals.tf. It returns the file each local name is defined in (for the
+// multi-file reference check) and the ranges of locals blocks that appear
+// after another block type in their file, violating both of the guide's
+// placements.
+func collectLocalDefinitions(files map[string]*hcl.File) (defined map[string]string, positionViolations []hcl.Range) {
+	defined = map[string]string{}
 
 	for filename, file := range files {
 		body, ok := file.Body.(*hclsyntax.Body)
 		if !ok {
 			continue
 		}
-		base := filepath.Base(filename)
-		if base == "locals.tf" {
+		if filepath.Base(filename) == "locals.tf" {
 			continue
 		}
 
@@ -89,9 +111,7 @@ func (r *StyleGuideLocalPlacementRule) Check(runner tflint.Runner) error {
 			}
 
 			if seenOtherBlock {
-				if err := runner.EmitIssue(r, r.MessagePosition(), block.DefRange()); err != nil {
-					return err
-				}
+				positionViolations = append(positionViolations, block.DefRange())
 			}
 
 			for name := range block.Body.Attributes {
@@ -100,12 +120,28 @@ func (r *StyleGuideLocalPlacementRule) Check(runner tflint.Runner) error {
 		}
 	}
 
+	return defined, positionViolations
+}
+
+// localReferenceViolation describes a local value defined outside locals.tf
+// but referenced from a file other than the one that defines it.
+type localReferenceViolation struct {
+	name         string
+	definedIn    string
+	referencedIn string
+	rng          hcl.Range
+}
+
+// findMultiFileLocalReferences walks every expression in the module and
+// reports, once per (local, referencing file) pair, a reference to a local
+// from a file other than its defining file.
+func findMultiFileLocalReferences(runner tflint.Runner, defined map[string]string) ([]localReferenceViolation, error) {
 	if len(defined) == 0 {
-		return nil
+		return nil, nil
 	}
 
+	var violations []localReferenceViolation
 	reported := map[string]bool{}
-	var emitErr error
 
 	diags := runner.WalkExpressions(tflint.ExprWalkFunc(func(expr hcl.Expression) hcl.Diagnostics {
 		for _, traversal := range expr.Variables() {
@@ -133,19 +169,18 @@ func (r *StyleGuideLocalPlacementRule) Check(runner tflint.Runner) error {
 			}
 			reported[key] = true
 
-			if err := runner.EmitIssue(r, r.MessageMultiFile(attr.Name, filepath.Base(definedIn), filepath.Base(referencedIn)), traversal.SourceRange()); err != nil {
-				emitErr = err
-				return nil
-			}
+			violations = append(violations, localReferenceViolation{
+				name:         attr.Name,
+				definedIn:    definedIn,
+				referencedIn: referencedIn,
+				rng:          traversal.SourceRange(),
+			})
 		}
 		return nil
 	}))
-	if emitErr != nil {
-		return emitErr
-	}
 	if diags.HasErrors() {
-		return diags
+		return nil, diags
 	}
 
-	return nil
+	return violations, nil
 }
