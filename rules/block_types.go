@@ -2,9 +2,12 @@ package rules
 
 // Terraform block type
 const (
-	BlockTypeResource = "resource"
-	BlockTypeData     = "data"
-	BlockTypeModule   = "module"
-	BlockTypeVariable = "variable"
-	BlockTypeOutput   = "output"
+	BlockTypeResource  = "resource"
+	BlockTypeData      = "data"
+	BlockTypeModule    = "module"
+	BlockTypeVariable  = "variable"
+	BlockTypeOutput    = "output"
+	BlockTypeTerraform = "terraform"
+	BlockTypeProvider  = "provider"
+	BlockTypeBackend   = "backend"
 )
