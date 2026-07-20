@@ -65,21 +65,6 @@ func TestStyleGuideLocalPlacementRule(t *testing.T) {
 			},
 		},
 		{
-			Name: "local referenced only within its defining file",
-			Files: map[string]string{
-				"main.tf": heredoc.Doc(`
-					locals {
-					  name = "example"
-					}
-
-					resource "aws_instance" "web" {
-					  instance_type = local.name
-					}
-				`),
-			},
-			Expected: helper.Issues{},
-		},
-		{
 			Name: "local defined outside locals.tf and referenced from another file",
 			Files: map[string]string{
 				"main.tf": heredoc.Doc(`
@@ -122,6 +107,36 @@ func TestStyleGuideLocalPlacementRule(t *testing.T) {
 				{
 					Rule:    NewStyleGuideLocalPlacementRule(),
 					Message: "'local.name' is defined in 'main.tf' but referenced from 'outputs.tf'; locals referenced from multiple files should be defined in 'locals.tf'",
+				},
+			},
+		},
+		{
+			Name: "local referenced from multiple distinct other files is reported once per file",
+			Files: map[string]string{
+				"main.tf": heredoc.Doc(`
+					locals {
+					  name = "example"
+					}
+				`),
+				"outputs.tf": heredoc.Doc(`
+					output "name" {
+					  value = local.name
+					}
+				`),
+				"extra.tf": heredoc.Doc(`
+					resource "aws_instance" "extra" {
+					  instance_type = local.name
+					}
+				`),
+			},
+			Expected: helper.Issues{
+				{
+					Rule:    NewStyleGuideLocalPlacementRule(),
+					Message: "'local.name' is defined in 'main.tf' but referenced from 'outputs.tf'; locals referenced from multiple files should be defined in 'locals.tf'",
+				},
+				{
+					Rule:    NewStyleGuideLocalPlacementRule(),
+					Message: "'local.name' is defined in 'main.tf' but referenced from 'extra.tf'; locals referenced from multiple files should be defined in 'locals.tf'",
 				},
 			},
 		},
