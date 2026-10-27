@@ -29,7 +29,7 @@ Add the following to your `.tflint.hcl`:
 ```hcl
 plugin "style-guide" {
   enabled = true
-  version = "0.3.0"
+  version = "0.3.1"
   source  = "github.com/miztch/tflint-ruleset-style-guide"
 
   signing_key = <<-KEY
