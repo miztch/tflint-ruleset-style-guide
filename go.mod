@@ -4,13 +4,14 @@ go 1.27.3
 
 require (
 	github.com/MakeNowJust/heredoc/v2 v2.0.1
-	github.com/hashicorp/hcl/v2 v2.24.0
+	github.com/hashicorp/hcl/v2 v2.25.0
 	github.com/terraform-linters/tflint-plugin-sdk v0.25.0
 )
 
 require (
 	github.com/agext/levenshtein v1.2.1 // indirect
 	github.com/apparentlymart/go-textseg/v15 v15.0.0 // indirect
+	github.com/apparentlymart/go-textseg/v17 v17.0.1 // indirect
 	github.com/fatih/color v1.13.0 // indirect
 	github.com/golang/protobuf v1.5.4 // indirect
 	github.com/google/go-cmp v0.7.0 // indirect
@@ -24,7 +25,7 @@ require (
 	github.com/oklog/run v1.1.0 // indirect
 	github.com/vmihailenco/msgpack/v5 v5.3.5 // indirect
 	github.com/vmihailenco/tagparser/v2 v2.0.0 // indirect
-	github.com/zclconf/go-cty v1.18.1 // indirect
+	github.com/zclconf/go-cty v1.19.0 // indirect
 	golang.org/x/mod v0.41.0 // indirect
 	golang.org/x/net v0.60.0 // indirect
 	golang.org/x/sync v0.23.0 // indirect
